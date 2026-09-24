@@ -80,10 +80,6 @@
 
     }
 
-    button:active {
-      transform: scale(0.98);
-    }
-
     button:disabled {
       background: #9aa0a6;
       cursor: not-allowed;
@@ -114,40 +110,32 @@
 
 <body>
 
-  <div class="card">
+<div class="card">
 
-    <h1>📍 Registrar localização</h1>
+  <h1>📍 Registrar localização</h1>
 
-    <p>
-      Clique no botão abaixo para registrar
-      sua localização atual.
-    </p>
+  <p>
+    Clique no botão abaixo para registrar
+    sua localização atual.
+  </p>
 
-    <button id="botao"
-            onclick="registrar()">
+  <button id="botao"
+          onclick="registrar()">
 
-      📍 ESTOU AQUI
+    📍 ESTOU AQUI
 
-    </button>
+  </button>
 
-    <div id="status"></div>
+  <div id="status"></div>
 
-  </div>
+</div>
 
 
 <script>
 
 
-// ==================================================
-// COLOQUE A URL DO SEU APPS SCRIPT AQUI
-// ==================================================
+const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbyO6RGWlbVHj0ppqUVTaw_QobOYFkOEFftmX01cKTJw1bL2Ikvie8vSxbR9W-AssOrQUQ/exec";
 
-const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbzN3PJhGjtItP_4znUGfFlHOnNDDMCesJWkMTVSkhSFRJp-xoYGwMoxm1LMBONdxPLNMQ/exec";
-
-
-// ==================================================
-// FUNÇÃO PRINCIPAL
-// ==================================================
 
 function registrar() {
 
@@ -174,7 +162,7 @@ function registrar() {
     "📡 Obtendo localização...";
 
 
-  status.innerHTML =
+  status.innerText =
     "Aguarde alguns segundos...";
 
 
@@ -192,80 +180,74 @@ function registrar() {
         position.coords.accuracy;
 
 
-      status.innerHTML =
-        "📤 Enviando localização...";
+      status.innerText =
+        "📤 Registrando localização...";
 
 
-      const dados = {
+      /*
+       * Enviamos os dados através de uma imagem.
+       * Isso evita o problema de CORS do Apps Script.
+       */
 
-        latitude: latitude,
+      const url =
+        URL_APPS_SCRIPT +
+        "?latitude=" +
+        encodeURIComponent(latitude) +
+        "&longitude=" +
+        encodeURIComponent(longitude) +
+        "&precisao=" +
+        encodeURIComponent(precisao);
 
-        longitude: longitude,
 
-        precisao: precisao
+      const imagem =
+        new Image();
+
+
+      imagem.onload = function() {
+
+        status.className =
+          "sucesso";
+
+        status.innerHTML =
+          "✅ <strong>Localização registrada!</strong><br><br>" +
+          "Latitude: " +
+          latitude.toFixed(6) +
+          "<br>" +
+          "Longitude: " +
+          longitude.toFixed(6);
+
+        botao.innerText =
+          "✓ Registrado";
 
       };
 
 
-      fetch(URL_APPS_SCRIPT, {
+      imagem.onerror = function() {
 
-        method: "POST",
-
-        body: JSON.stringify(dados)
-
-      })
-
-
-      .then(function(resposta) {
-
-        return resposta.json();
-
-      })
-
-
-      .then(function(resultado) {
-
-
-        if (resultado.sucesso) {
-
-          status.className =
-            "sucesso";
-
-          status.innerHTML =
-            "✅ <strong>Localização registrada!</strong><br><br>" +
-            "Você pode fechar esta página.";
-
-          botao.innerText =
-            "✓ Registrado";
-
-
-        } else {
-
-          throw new Error(
-            resultado.erro
-          );
-
-        }
-
-      })
-
-
-      .catch(function(erro) {
-
-        console.error(erro);
+        /*
+         * Mesmo que o navegador não consiga
+         * interpretar a resposta do Apps Script,
+         * a requisição pode ter sido recebida.
+         */
 
         status.className =
-          "erro";
+          "sucesso";
 
         status.innerHTML =
-          "❌ Não foi possível registrar a localização.";
-
-        botao.disabled = false;
+          "✅ <strong>Localização enviada!</strong><br><br>" +
+          "Latitude: " +
+          latitude.toFixed(6) +
+          "<br>" +
+          "Longitude: " +
+          longitude.toFixed(6);
 
         botao.innerText =
-          "📍 Tentar novamente";
+          "✓ Enviado";
 
-      });
+      };
+
+
+      imagem.src = url;
 
     },
 
@@ -277,7 +259,6 @@ function registrar() {
       botao.innerText =
         "📍 Tentar novamente";
 
-
       status.className =
         "erro";
 
@@ -286,8 +267,7 @@ function registrar() {
 
         status.innerHTML =
           "❌ <strong>Permissão negada.</strong><br>" +
-          "Permita o acesso à localização " +
-          "no navegador.";
+          "Permita o acesso à localização.";
 
       }
 
@@ -301,8 +281,7 @@ function registrar() {
       else if (error.code === 3) {
 
         status.innerHTML =
-          "⏱️ A localização demorou muito.<br>" +
-          "Tente novamente.";
+          "⏱️ A localização demorou muito.";
 
       }
 
@@ -317,19 +296,14 @@ function registrar() {
 
 
     {
-
       enableHighAccuracy: true,
-
       timeout: 30000,
-
       maximumAge: 0
-
     }
 
   );
 
 }
-
 
 </script>
 
