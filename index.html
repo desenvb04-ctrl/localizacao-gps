@@ -116,16 +116,32 @@
 
 <script>
 
-const URL_APPS_SCRIPT =
-  "https://script.google.com/macros/s/AKfycbytbXAGyFBUkz770jzj93m0lkgTguxfTfv2R18dkNaHwWVFoRM7xHxnmfiWx6Q-q4f3YQ/exec";
+// ==================================================
+// CONFIGURAÇÃO
+// ==================================================
 
-  const parametros =
+const URL_APPS_SCRIPT =
+  "https://script.google.com/macros/s/AKfycbyhaSPYnrwNQr7jltwM9a7RUPtVYUdIMX9xU1Td4wEkjaeaSJ1kVBAMH7RpCwM26WnTSw/exec";
+
+
+// ==================================================
+// LÊ O CÓDIGO DA URL
+// Exemplo:
+// ?codigo=ABC001
+// ==================================================
+
+const parametros =
   new URLSearchParams(window.location.search);
 
 const CODIGO =
   parametros.get("codigo");
 
 let TOKEN = null;
+
+
+// ==================================================
+// OBTÉM TOKEN TEMPORÁRIO
+// ==================================================
 
 async function obterToken() {
 
@@ -159,8 +175,13 @@ async function obterToken() {
     dados.token;
 
   return TOKEN;
-},
-  
+}
+
+
+// ==================================================
+// REGISTRAR LOCALIZAÇÃO
+// ==================================================
+
 async function registrar() {
 
   const botao =
@@ -170,8 +191,13 @@ async function registrar() {
     document.getElementById("status");
 
 
+  // ----------------------------------------------
+  // Verifica suporte à geolocalização
+  // ----------------------------------------------
 
   if (!navigator.geolocation) {
+
+    status.className = "erro";
 
     status.innerHTML =
       "❌ Seu dispositivo não suporta geolocalização.";
@@ -186,9 +212,15 @@ async function registrar() {
     "📡 Obtendo localização...";
 
 
+  status.className = "";
+
   status.innerText =
     "Aguarde alguns segundos...";
 
+
+  // ----------------------------------------------
+  // Obtém localização
+  // ----------------------------------------------
 
   navigator.geolocation.getCurrentPosition(
 
@@ -204,9 +236,9 @@ async function registrar() {
         position.coords.accuracy;
 
 
-      /*
-       * Mantemos os valores como texto.
-       */
+      // ------------------------------------------
+      // Converte para texto
+      // ------------------------------------------
 
       const latitudeTexto =
         String(latitude);
@@ -218,9 +250,9 @@ async function registrar() {
         String(precisao);
 
 
-      /*
-       * Verificação de segurança.
-       */
+      // ------------------------------------------
+      // Validação
+      // ------------------------------------------
 
       if (
         latitude < -90 ||
@@ -229,7 +261,8 @@ async function registrar() {
         longitude > 180
       ) {
 
-        status.className = "erro";
+        status.className =
+          "erro";
 
         status.innerHTML =
           "❌ A localização retornada é inválida.";
@@ -243,67 +276,74 @@ async function registrar() {
       }
 
 
-      /*
-       * Mostra exatamente o que será enviado.
-       */
+      // ------------------------------------------
+      // Identifica usuário e obtém token
+      // ------------------------------------------
+
+      status.innerText =
+        "🔐 Identificando usuário...";
+
+
+      try {
+
+        await obterToken();
+
+      } catch (erro) {
+
+        botao.disabled = false;
+
+        botao.innerText =
+          "📍 Tentar novamente";
+
+        status.className =
+          "erro";
+
+        status.innerHTML =
+          "❌ " + erro.message;
+
+        return;
+      }
+
+
+      // ------------------------------------------
+      // Mostra localização
+      // ------------------------------------------
 
       status.innerHTML =
         "📍 <strong>Localização encontrada</strong><br><br>" +
         "Latitude: " + latitudeTexto + "<br>" +
         "Longitude: " + longitudeTexto + "<br>" +
         "Precisão: " + precisaoTexto + " m<br><br>" +
-        "📤 Enviando...";
+        "📤 Registrando...";
 
 
-    try {
-
-  status.innerText =
-    "🔐 Identificando usuário...";
-
-  await obterToken();
-
-} catch (erro) {
-
-  botao.disabled = false;
-
-  botao.innerText =
-    "📍 Tentar novamente";
-
-  status.className =
-    "erro";
-
-  status.innerHTML =
-    "❌ " + erro.message;
-
-  return;
-},
-
-
-      
-      /*
-       * Monta a URL.
-       */
+      // ------------------------------------------
+      // Monta URL
+      // ------------------------------------------
 
       const url =
-  URL_APPS_SCRIPT +
-  "?token=" +
-  encodeURIComponent(TOKEN) +
-  "&latitude=" +
-  encodeURIComponent(latitudeTexto) +
-  "&longitude=" +
-  encodeURIComponent(longitudeTexto) +
-  "&precisao=" +
-  encodeURIComponent(precisaoTexto);
+        URL_APPS_SCRIPT +
+        "?token=" +
+        encodeURIComponent(TOKEN) +
+        "&latitude=" +
+        encodeURIComponent(latitudeTexto) +
+        "&longitude=" +
+        encodeURIComponent(longitudeTexto) +
+        "&precisao=" +
+        encodeURIComponent(precisaoTexto);
 
 
-      console.log("URL enviada:", url);
+      console.log(
+        "URL enviada:",
+        url
+      );
 
+
+      // ------------------------------------------
+      // Envia para Apps Script
+      // ------------------------------------------
 
       try {
-
-        /*
-         * Envia diretamente para o Apps Script.
-         */
 
         await fetch(url, {
           method: "GET",
@@ -311,10 +351,9 @@ async function registrar() {
         });
 
 
-        /*
-         * Não conseguimos ler a resposta do Apps Script
-         * por causa do CORS, mas a requisição foi enviada.
-         */
+        // ----------------------------------------
+        // Sucesso
+        // ----------------------------------------
 
         status.className =
           "sucesso";
@@ -334,27 +373,41 @@ async function registrar() {
 
         botao.innerText =
           "✓ Registrado";
+
+
+        // ----------------------------------------
+        // Botão voltar ao site
+        // ----------------------------------------
+
         const voltar =
-  document.createElement("button");
+          document.createElement("button");
 
-voltar.innerText =
-  "← Voltar ao site";
 
-voltar.style.marginTop =
-  "15px";
+        voltar.innerText =
+          "← Voltar ao site";
 
-voltar.style.background =
-  "#5f6368";
 
-voltar.onclick =
-  function() {
+        voltar.style.marginTop =
+          "15px";
 
-    window.location.href =
-      "https://sites.google.com/view/sitesouro/home";
 
-  };
+        voltar.style.background =
+          "#5f6368";
 
-status.appendChild(voltar);
+
+        voltar.onclick =
+          function() {
+
+            window.location.href =
+              "https://sites.google.com/view/sitesouro/home";
+
+          };
+
+
+        status.appendChild(
+          voltar
+        );
+
 
       } catch (erro) {
 
@@ -374,6 +427,10 @@ status.appendChild(voltar);
 
     },
 
+
+    // --------------------------------------------
+    // ERRO DO GPS
+    // --------------------------------------------
 
     function(error) {
 
@@ -417,9 +474,10 @@ status.appendChild(voltar);
 
     },
 
-    function voltarAoSite() {
-     window.location.href = "https://sites.google.com/view/sitesouro/home";
-    },
+
+    // --------------------------------------------
+    // CONFIGURAÇÕES DO GPS
+    // --------------------------------------------
 
     {
       enableHighAccuracy: true,
