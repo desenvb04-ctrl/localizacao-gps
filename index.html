@@ -119,6 +119,11 @@
 const URL_APPS_SCRIPT =
   "https://script.google.com/macros/s/AKfycbzBtBy5J1NFoRn2TPZTzTfUUNyqAwOxVVdwbG5ViPEo_7mRJitdUYh1dsIe0xiIY6LDyg/exec";
 
+  const parametros =
+  new URLSearchParams(window.location.search);
+
+const TOKEN =
+  parametros.get("token");
 
 function registrar() {
 
@@ -128,6 +133,17 @@ function registrar() {
   const status =
     document.getElementById("status");
 
+
+  if (!TOKEN) {
+
+    status.className = "erro";
+
+    status.innerHTML =
+    "❌ Link inválido ou sem identificação.";
+
+    return;
+}
+  
 
   if (!navigator.geolocation) {
 
@@ -218,13 +234,15 @@ function registrar() {
        */
 
       const url =
-        URL_APPS_SCRIPT +
-        "?latitude=" +
-        encodeURIComponent(latitudeTexto) +
-        "&longitude=" +
-        encodeURIComponent(longitudeTexto) +
-        "&precisao=" +
-        encodeURIComponent(precisaoTexto);
+  URL_APPS_SCRIPT +
+  "?token=" +
+  encodeURIComponent(TOKEN) +
+  "&latitude=" +
+  encodeURIComponent(latitudeTexto) +
+  "&longitude=" +
+  encodeURIComponent(longitudeTexto) +
+  "&precisao=" +
+  encodeURIComponent(precisaoTexto);
 
 
       console.log("URL enviada:", url);
