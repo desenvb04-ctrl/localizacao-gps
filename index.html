@@ -122,10 +122,46 @@ const URL_APPS_SCRIPT =
   const parametros =
   new URLSearchParams(window.location.search);
 
-const TOKEN =
-  parametros.get("token");
+const CODIGO =
+  parametros.get("codigo");
 
-function registrar() {
+let TOKEN = null;
+
+async function obterToken() {
+
+  if (!CODIGO) {
+
+    throw new Error(
+      "Código do usuário não informado."
+    );
+  }
+
+  const url =
+    URL_APPS_SCRIPT +
+    "?codigo=" +
+    encodeURIComponent(CODIGO);
+
+  const resposta =
+    await fetch(url);
+
+  const dados =
+    await resposta.json();
+
+  if (!dados.sucesso) {
+
+    throw new Error(
+      dados.mensagem ||
+      "Não foi possível identificar o usuário."
+    );
+  }
+
+  TOKEN =
+    dados.token;
+
+  return TOKEN;
+},
+  
+async function registrar() {
 
   const botao =
     document.getElementById("botao");
@@ -134,16 +170,6 @@ function registrar() {
     document.getElementById("status");
 
 
-  if (!TOKEN) {
-
-    status.className = "erro";
-
-    status.innerHTML =
-    "❌ Link inválido ou sem identificação.";
-
-    return;
-}
-  
 
   if (!navigator.geolocation) {
 
@@ -229,6 +255,31 @@ function registrar() {
         "📤 Enviando...";
 
 
+    try {
+
+  status.innerText =
+    "🔐 Identificando usuário...";
+
+  await obterToken();
+
+} catch (erro) {
+
+  botao.disabled = false;
+
+  botao.innerText =
+    "📍 Tentar novamente";
+
+  status.className =
+    "erro";
+
+  status.innerHTML =
+    "❌ " + erro.message;
+
+  return;
+}
+
+
+      
       /*
        * Monta a URL.
        */
