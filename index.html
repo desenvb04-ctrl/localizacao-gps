@@ -2,7 +2,6 @@
 <html lang="pt-BR">
 
 <head>
-
   <meta charset="UTF-8">
 
   <meta name="viewport"
@@ -42,8 +41,7 @@
 
       text-align: center;
 
-      box-shadow:
-        0 5px 25px rgba(0,0,0,0.12);
+      box-shadow: 0 5px 25px rgba(0,0,0,0.12);
     }
 
     h1 {
@@ -57,27 +55,21 @@
     }
 
     button {
-
       width: 100%;
-
       margin-top: 20px;
 
       padding: 16px;
 
       border: none;
-
       border-radius: 10px;
 
       background: #1a73e8;
-
       color: white;
 
       font-size: 18px;
-
       font-weight: bold;
 
       cursor: pointer;
-
     }
 
     button:disabled {
@@ -86,13 +78,9 @@
     }
 
     #status {
-
       margin-top: 25px;
-
       font-size: 15px;
-
       line-height: 1.5;
-
     }
 
     .sucesso {
@@ -104,7 +92,6 @@
     }
 
   </style>
-
 </head>
 
 
@@ -119,11 +106,8 @@
     sua localização atual.
   </p>
 
-  <button id="botao"
-          onclick="registrar()">
-
+  <button id="botao" onclick="registrar()">
     📍 ESTOU AQUI
-
   </button>
 
   <div id="status"></div>
@@ -133,9 +117,16 @@
 
 <script>
 
+// ==================================================
+// URL DO SEU GOOGLE APPS SCRIPT
+// ==================================================
 
-const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbyO6RGWlbVHj0ppqUVTaw_QobOYFkOEFftmX01cKTJw1bL2Ikvie8vSxbR9W-AssOrQUQ/exec";
+const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbwzquUVsGapNNqaMZQnvUtsieHyPQAKmjm8X_tD4QFwqIEGbSIY-g48GS8lDWBMT5UJTQ/exec";
 
+
+// ==================================================
+// REGISTRAR LOCALIZAÇÃO
+// ==================================================
 
 function registrar() {
 
@@ -152,7 +143,6 @@ function registrar() {
       "❌ Seu dispositivo não suporta geolocalização.";
 
     return;
-
   }
 
 
@@ -184,11 +174,6 @@ function registrar() {
         "📤 Registrando localização...";
 
 
-      /*
-       * Enviamos os dados através de uma imagem.
-       * Isso evita o problema de CORS do Apps Script.
-       */
-
       const url =
         URL_APPS_SCRIPT +
         "?latitude=" +
@@ -199,14 +184,28 @@ function registrar() {
         encodeURIComponent(precisao);
 
 
-      const imagem =
-        new Image();
+      /*
+       * Cria uma requisição GET para o Apps Script.
+       */
+
+      const iframe =
+        document.createElement("iframe");
+
+      iframe.style.display = "none";
+
+      iframe.src = url;
+
+      document.body.appendChild(iframe);
 
 
-      imagem.onload = function() {
+      /*
+       * Dá tempo para o Apps Script
+       * processar a solicitação.
+       */
 
-        status.className =
-          "sucesso";
+      setTimeout(function() {
+
+        status.className = "sucesso";
 
         status.innerHTML =
           "✅ <strong>Localização registrada!</strong><br><br>" +
@@ -219,35 +218,7 @@ function registrar() {
         botao.innerText =
           "✓ Registrado";
 
-      };
-
-
-      imagem.onerror = function() {
-
-        /*
-         * Mesmo que o navegador não consiga
-         * interpretar a resposta do Apps Script,
-         * a requisição pode ter sido recebida.
-         */
-
-        status.className =
-          "sucesso";
-
-        status.innerHTML =
-          "✅ <strong>Localização enviada!</strong><br><br>" +
-          "Latitude: " +
-          latitude.toFixed(6) +
-          "<br>" +
-          "Longitude: " +
-          longitude.toFixed(6);
-
-        botao.innerText =
-          "✓ Enviado";
-
-      };
-
-
-      imagem.src = url;
+      }, 3000);
 
     },
 
