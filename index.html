@@ -174,26 +174,27 @@ function registrar() {
         "📤 Registrando localização...";
 
 
-      const dados = {
-  latitude: latitude,
-  longitude: longitude,
-  precisao: precisao
-};
+      const latitudeTexto =
+  String(latitude);
 
-const json =
-  JSON.stringify(dados);
+const longitudeTexto =
+  String(longitude);
 
-const codificado =
-  btoa(
-    unescape(
-      encodeURIComponent(json)
-    )
-  );
+const precisaoTexto =
+  String(precisao);
+
 
 const url =
   URL_APPS_SCRIPT +
-  "?dados=" +
-  encodeURIComponent(codificado);
+  "?latitude=" +
+  encodeURIComponent(latitudeTexto) +
+  "&longitude=" +
+  encodeURIComponent(longitudeTexto) +
+  "&precisao=" +
+  encodeURIComponent(precisaoTexto);
+
+
+console.log("URL enviada:", url);
 
 
       /*
