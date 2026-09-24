@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+  <title>Registrar localização</title>
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      font-family: Arial, sans-serif;
+
+      background: #f5f7fa;
+      color: #202124;
+    }
+
+    .card {
+      width: 90%;
+      max-width: 420px;
+
+      background: white;
+
+      padding: 35px 25px;
+
+      border-radius: 18px;
+
+      text-align: center;
+
+      box-shadow:
+        0 5px 25px rgba(0,0,0,0.12);
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 25px;
+    }
+
+    p {
+      color: #5f6368;
+      line-height: 1.5;
+    }
+
+    button {
+
+      width: 100%;
+
+      margin-top: 20px;
+
+      padding: 16px;
+
+      border: none;
+
+      border-radius: 10px;
+
+      background: #1a73e8;
+
+      color: white;
+
+      font-size: 18px;
+
+      font-weight: bold;
+
+      cursor: pointer;
+
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    button:disabled {
+      background: #9aa0a6;
+      cursor: not-allowed;
+    }
+
+    #status {
+
+      margin-top: 25px;
+
+      font-size: 15px;
+
+      line-height: 1.5;
+
+    }
+
+    .sucesso {
+      color: #188038;
+    }
+
+    .erro {
+      color: #d93025;
+    }
+
+  </style>
+
+</head>
+
+
+<body>
+
+  <div class="card">
+
+    <h1>📍 Registrar localização</h1>
+
+    <p>
+      Clique no botão abaixo para registrar
+      sua localização atual.
+    </p>
+
+    <button id="botao"
+            onclick="registrar()">
+
+      📍 ESTOU AQUI
+
+    </button>
+
+    <div id="status"></div>
+
+  </div>
+
+
+<script>
+
+
+// ==================================================
+// COLOQUE A URL DO SEU APPS SCRIPT AQUI
+// ==================================================
+
+const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbzN3PJhGjtItP_4znUGfFlHOnNDDMCesJWkMTVSkhSFRJp-xoYGwMoxm1LMBONdxPLNMQ/exec";
+
+
+// ==================================================
+// FUNÇÃO PRINCIPAL
+// ==================================================
+
+function registrar() {
+
+  const botao =
+    document.getElementById("botao");
+
+  const status =
+    document.getElementById("status");
+
+
+  if (!navigator.geolocation) {
+
+    status.innerHTML =
+      "❌ Seu dispositivo não suporta geolocalização.";
+
+    return;
+
+  }
+
+
+  botao.disabled = true;
+
+  botao.innerText =
+    "📡 Obtendo localização...";
+
+
+  status.innerHTML =
+    "Aguarde alguns segundos...";
+
+
+  navigator.geolocation.getCurrentPosition(
+
+    function(position) {
+
+      const latitude =
+        position.coords.latitude;
+
+      const longitude =
+        position.coords.longitude;
+
+      const precisao =
+        position.coords.accuracy;
+
+
+      status.innerHTML =
+        "📤 Enviando localização...";
+
+
+      const dados = {
+
+        latitude: latitude,
+
+        longitude: longitude,
+
+        precisao: precisao
+
+      };
+
+
+      fetch(URL_APPS_SCRIPT, {
+
+        method: "POST",
+
+        body: JSON.stringify(dados)
+
+      })
+
+
+      .then(function(resposta) {
+
+        return resposta.json();
+
+      })
+
+
+      .then(function(resultado) {
+
+
+        if (resultado.sucesso) {
+
+          status.className =
+            "sucesso";
+
+          status.innerHTML =
+            "✅ <strong>Localização registrada!</strong><br><br>" +
+            "Você pode fechar esta página.";
+
+          botao.innerText =
+            "✓ Registrado";
+
+
+        } else {
+
+          throw new Error(
+            resultado.erro
+          );
+
+        }
+
+      })
+
+
+      .catch(function(erro) {
+
+        console.error(erro);
+
+        status.className =
+          "erro";
+
+        status.innerHTML =
+          "❌ Não foi possível registrar a localização.";
+
+        botao.disabled = false;
+
+        botao.innerText =
+          "📍 Tentar novamente";
+
+      });
+
+    },
+
+
+    function(error) {
+
+      botao.disabled = false;
+
+      botao.innerText =
+        "📍 Tentar novamente";
+
+
+      status.className =
+        "erro";
+
+
+      if (error.code === 1) {
+
+        status.innerHTML =
+          "❌ <strong>Permissão negada.</strong><br>" +
+          "Permita o acesso à localização " +
+          "no navegador.";
+
+      }
+
+      else if (error.code === 2) {
+
+        status.innerHTML =
+          "❌ Não foi possível determinar sua localização.";
+
+      }
+
+      else if (error.code === 3) {
+
+        status.innerHTML =
+          "⏱️ A localização demorou muito.<br>" +
+          "Tente novamente.";
+
+      }
+
+      else {
+
+        status.innerHTML =
+          "❌ Erro ao obter localização.";
+
+      }
+
+    },
+
+
+    {
+
+      enableHighAccuracy: true,
+
+      timeout: 30000,
+
+      maximumAge: 0
+
+    }
+
+  );
+
+}
+
+
+</script>
+
+</body>
+
+</html>
