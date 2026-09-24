@@ -195,7 +195,11 @@ const url =
 
 
 console.log("URL enviada:", url);
-
+status.innerHTML =
+  "Latitude enviada: " + latitudeTexto +
+  "<br>Longitude enviada: " + longitudeTexto +
+  "<br>Precisão enviada: " + precisaoTexto +
+  "<br><br>📤 Enviando...";
 
       /*
        * Cria uma requisição GET para o Apps Script.
