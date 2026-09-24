@@ -94,7 +94,6 @@
   </style>
 </head>
 
-
 <body>
 
 <div class="card">
@@ -117,16 +116,9 @@
 
 <script>
 
-// ==================================================
-// URL DO SEU GOOGLE APPS SCRIPT
-// ==================================================
+const URL_APPS_SCRIPT =
+  "https://script.google.com/macros/s/AKfycbzBtBy5J1NFoRn2TPZTzTfUUNyqAwOxVVdwbG5ViPEo_7mRJitdUYh1dsIe0xiIY6LDyg/exec";
 
-const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbwzquUVsGapNNqaMZQnvUtsieHyPQAKmjm8X_tD4QFwqIEGbSIY-g48GS8lDWBMT5UJTQ/exec";
-
-
-// ==================================================
-// REGISTRAR LOCALIZAÇÃO
-// ==================================================
 
 function registrar() {
 
@@ -158,7 +150,7 @@ function registrar() {
 
   navigator.geolocation.getCurrentPosition(
 
-    function(position) {
+    async function(position) {
 
       const latitude =
         position.coords.latitude;
@@ -170,59 +162,93 @@ function registrar() {
         position.coords.accuracy;
 
 
-      status.innerText =
-        "📤 Registrando localização...";
-
+      /*
+       * Mantemos os valores como texto.
+       */
 
       const latitudeTexto =
-  String(latitude);
+        String(latitude);
 
-const longitudeTexto =
-  String(longitude);
+      const longitudeTexto =
+        String(longitude);
 
-const precisaoTexto =
-  String(precisao);
-
-
-const url =
-  URL_APPS_SCRIPT +
-  "?latitude=" +
-  encodeURIComponent(latitudeTexto) +
-  "&longitude=" +
-  encodeURIComponent(longitudeTexto) +
-  "&precisao=" +
-  encodeURIComponent(precisaoTexto);
-
-
-console.log("URL enviada:", url);
-status.innerHTML =
-  "Latitude enviada: " + latitudeTexto +
-  "<br>Longitude enviada: " + longitudeTexto +
-  "<br>Precisão enviada: " + precisaoTexto +
-  "<br><br>📤 Enviando...";
-
-      /*
-       * Cria uma requisição GET para o Apps Script.
-       */
-
-      const iframe =
-        document.createElement("iframe");
-
-      iframe.style.display = "none";
-
-      iframe.src = url;
-
-      document.body.appendChild(iframe);
+      const precisaoTexto =
+        String(precisao);
 
 
       /*
-       * Dá tempo para o Apps Script
-       * processar a solicitação.
+       * Verificação de segurança.
        */
 
-      setTimeout(function() {
+      if (
+        latitude < -90 ||
+        latitude > 90 ||
+        longitude < -180 ||
+        longitude > 180
+      ) {
 
-        status.className = "sucesso";
+        status.className = "erro";
+
+        status.innerHTML =
+          "❌ A localização retornada é inválida.";
+
+        botao.disabled = false;
+
+        botao.innerText =
+          "📍 Tentar novamente";
+
+        return;
+      }
+
+
+      /*
+       * Mostra exatamente o que será enviado.
+       */
+
+      status.innerHTML =
+        "📍 <strong>Localização encontrada</strong><br><br>" +
+        "Latitude: " + latitudeTexto + "<br>" +
+        "Longitude: " + longitudeTexto + "<br>" +
+        "Precisão: " + precisaoTexto + " m<br><br>" +
+        "📤 Enviando...";
+
+
+      /*
+       * Monta a URL.
+       */
+
+      const url =
+        URL_APPS_SCRIPT +
+        "?latitude=" +
+        encodeURIComponent(latitudeTexto) +
+        "&longitude=" +
+        encodeURIComponent(longitudeTexto) +
+        "&precisao=" +
+        encodeURIComponent(precisaoTexto);
+
+
+      console.log("URL enviada:", url);
+
+
+      try {
+
+        /*
+         * Envia diretamente para o Apps Script.
+         */
+
+        await fetch(url, {
+          method: "GET",
+          mode: "no-cors"
+        });
+
+
+        /*
+         * Não conseguimos ler a resposta do Apps Script
+         * por causa do CORS, mas a requisição foi enviada.
+         */
+
+        status.className =
+          "sucesso";
 
         status.innerHTML =
           "✅ <strong>Localização registrada!</strong><br><br>" +
@@ -230,12 +256,32 @@ status.innerHTML =
           latitude.toFixed(6) +
           "<br>" +
           "Longitude: " +
-          longitude.toFixed(6);
+          longitude.toFixed(6) +
+          "<br>" +
+          "Precisão: " +
+          precisao.toFixed(1) +
+          " m";
+
 
         botao.innerText =
           "✓ Registrado";
 
-      }, 3000);
+
+      } catch (erro) {
+
+        console.error(erro);
+
+        status.className =
+          "erro";
+
+        status.innerHTML =
+          "❌ Não foi possível enviar a localização.";
+
+        botao.disabled = false;
+
+        botao.innerText =
+          "📍 Tentar novamente";
+      }
 
     },
 
