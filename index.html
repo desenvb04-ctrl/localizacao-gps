@@ -265,7 +265,27 @@ function registrar() {
 
         botao.innerText =
           "✓ Registrado";
+        const voltar =
+  document.createElement("button");
 
+voltar.innerText =
+  "← Voltar ao site";
+
+voltar.style.marginTop =
+  "15px";
+
+voltar.style.background =
+  "#5f6368";
+
+voltar.onclick =
+  function() {
+
+    window.location.href =
+      "https://sites.google.com/view/sitesouro/home";
+
+  };
+
+status.appendChild(voltar);
 
       } catch (erro) {
 
@@ -328,6 +348,9 @@ function registrar() {
 
     },
 
+    function voltarAoSite() {
+     window.location.href = "https://sites.google.com/view/sitesouro/home";
+    },
 
     {
       enableHighAccuracy: true,
